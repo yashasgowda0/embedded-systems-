@@ -1,0 +1,39 @@
+#include "main.h"
+
+#define STEP_PORT GPIOA
+#define STEP_PIN  GPIO_PIN_6
+#define DIR_PORT  GPIOA
+#define DIR_PIN   GPIO_PIN_7
+
+void Stepper_Step(uint32_t steps, GPIO_PinState dir, uint32_t step_delay_ms)
+{
+    HAL_GPIO_WritePin(DIR_PORT, DIR_PIN, dir);
+    HAL_Delay(1); // Brief setup time for DIR signal
+
+    for (uint32_t i = 0; i < steps; i++)
+    {
+        HAL_GPIO_WritePin(STEP_PORT, STEP_PIN, GPIO_PIN_SET);
+        HAL_Delay(step_delay_ms);
+
+        HAL_GPIO_WritePin(STEP_PORT, STEP_PIN, GPIO_PIN_RESET);
+        HAL_Delay(step_delay_ms);
+    }
+}
+
+int main(void)
+{
+    HAL_Init();
+    SystemClock_Config();
+    MX_GPIO_Init();
+
+    while (1)
+    {
+        // 200 steps clockwise (~1 full rev on a 1.8 deg/step motor at full step)
+        Stepper_Step(200, GPIO_PIN_SET, 2);
+        HAL_Delay(500);
+
+        // 200 steps counter-clockwise
+        Stepper_Step(200, GPIO_PIN_RESET, 2);
+        HAL_Delay(500);
+    }
+}
